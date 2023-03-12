@@ -5,6 +5,8 @@
 
 #include <ctype.h>
 
+#include "AST.h"
+
 enum Token {
 	tok_val,
 	tok_var,
@@ -23,12 +25,12 @@ typedef struct {
 std::queue<Lexeme> input;
 bool lexer(std::string &equation);
 void parser();
-bool equation();
-bool disjunction();
-bool conjunction();
-bool flip();
-bool atom();
-bool err_message(const char *message, Lexeme &item);
+Expr* equation();
+Expr* disjunction();
+Expr* conjunction();
+Expr* flip();
+Expr* atom();
+Expr* err_message(const char *message, Lexeme &item);
 //void print_table(AST* head);
 int main(int argc, char **argv)
 {
@@ -127,83 +129,109 @@ void parser()
 {
 	if(input.size() == 0)
 		return;
-	if(equation())
-		std::cout << "Valid String" << std::endl;
+	Expr *eq = equation();
+	if(eq)
+		std::cout << eq->calc() << std::endl;
 	else
 		std::cout << "Invalid String" << std::endl;
 }
 
-bool equation()
+Expr* equation()
 {
-	return disjunction() && (input.size() == 0);
+	Expr *eq = disjunction();
+	if(eq && (input.size() == 0))
+		return eq;
+	return nullptr;
 }
 
-bool disjunction()
+Expr* disjunction()
 {
 	if(input.size() == 0)
-		return false;
-	if(conjunction()) {
+		return nullptr;
+	Expr *lhs = conjunction();
+	if(lhs) {
 		if(input.front().tok == tok_or) {
 			input.pop();
-			if(!disjunction()) {
+			Expr *rhs = conjunction();
+			if(!rhs) {
+				delete lhs;
 				return err_message("AND_EXPR", input.front());
 			}
+			return new Binary('+', lhs, rhs);
 		}
-		return true;
 	}
-	return false;
+	return lhs;
 }
 
-bool conjunction()
+Expr* conjunction()
 {
 	if(input.size() == 0)
-		return false;
-	if(flip()) {
+		return nullptr;
+	Expr *lhs = flip();
+	if(lhs) {
 		if(input.front().tok == tok_and) {
 			input.pop();
-			if(!flip()) {
+			Expr *rhs = flip();
+			if(!rhs) {
+				delete lhs;
 				return err_message("FLIP_EXPR", input.front());
 			}
+			return new Binary('*', lhs, rhs);
 		}
-		return true;
 	}
-	return false;
+	return lhs;
 }
 
-bool flip()
+Expr* flip()
 {
 	if(input.size() == 0)
-		return false;
-	if(input.front().tok == tok_not)
+		return nullptr;
+	Expr *temp;
+	if(input.front().tok == tok_not) {
 		input.pop();
+		temp = atom();
+		if(!temp)
+			return nullptr;
+		return new Unary(temp);
+	}
 	return atom();
 }
 
-bool atom()
+Expr* atom()
 {
 	if(input.size() == 0)
-		return false;
+		return nullptr;
+	Expr *temp;
 	switch(input.front().tok) {
 		case tok_val:
-		case tok_var:
+			if(input.front().value == "1")
+				temp = new Val(true);
+			else
+				temp = new Val(false);
 			input.pop();
-			return true;
+			return temp;
+		case tok_var:
+			temp = new Var(input.front().value);
+			input.pop();
+			return temp;
 		case tok_lparen:
 			input.pop();
-			disjunction();
+			temp = disjunction();
 			if(input.front().tok == tok_rparen) {
 				input.pop();
-				return true;
+				return temp;
 			}
-			else
+			else {
+				delete temp;
 				return err_message(")", input.front());
+			}
 		default:
 			return err_message("variable or truth value", input.front());
 	}
 }
 
 
-bool err_message(const char *message, Lexeme &item)
+Expr* err_message(const char *message, Lexeme &item)
 {
 	std::cout << "Error: Expected " << message << " got " << item.value << std::endl;
 	return nullptr;

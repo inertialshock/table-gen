@@ -3,7 +3,6 @@
 #include <string>
 class Expr {
 	public:
-		virtual ~Expr() = default;
 		virtual bool calc() {return true;}
 };
 class Binary : public Expr {
@@ -11,6 +10,7 @@ class Binary : public Expr {
 		Binary(char op, Expr *left, Expr *right)
 			: op(op), left(left), right(right) {}
 		bool calc() override;
+		~Binary();
 	private:
 		char op;
 		Expr *left, *right;
@@ -20,6 +20,7 @@ class Unary : public Expr {
 		Unary(Expr *e)
 			: e(e) {}
 		bool calc() override;
+		~Unary();
 	private:
 		Expr *e;
 };
