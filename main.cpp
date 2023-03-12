@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <ctype.h>
+#include <math.h>
 
 #include "AST.h"
 
@@ -23,14 +24,17 @@ typedef struct {
 } Lexeme;
 
 std::queue<Lexeme> input;
+std::vector<Var *> symbol_table;
+
 bool lexer(std::string &equation);
-void parser();
+Expr* parser();
 Expr* equation();
 Expr* disjunction();
 Expr* conjunction();
 Expr* flip();
 Expr* atom();
 Expr* err_message(const char *message, Lexeme &item);
+void print_table(Expr *e);
 //void print_table(AST* head);
 int main(int argc, char **argv)
 {
@@ -52,8 +56,21 @@ int main(int argc, char **argv)
 			std::cerr << "Error: No equation was given" << std::endl;
 		return -1;
 	}
-	else
-		parser();
+	else {
+		Expr* e = parser();
+		if(!e) {
+			std::cerr << "Invalid string" << std::endl;
+			return -1;
+		}
+		else {
+			if(symbol_table.size() > 0) {
+				print_table(e);
+			}
+			else {
+				std::cout << "Value of equation: " << e->calc() << std::endl;
+			}
+		}
+	}
 	/*
 	while(input.size() != 0)
 	{
@@ -125,15 +142,11 @@ bool lexer(std::string &equation)
 	}
 }
 
-void parser()
+Expr* parser()
 {
 	if(input.size() == 0)
-		return;
-	Expr *eq = equation();
-	if(eq)
-		std::cout << eq->calc() << std::endl;
-	else
-		std::cout << "Invalid String" << std::endl;
+		return nullptr;
+	return equation();
 }
 
 Expr* equation()
@@ -216,8 +229,16 @@ Expr* atom()
 			return err_message(")", input.front());
 		}
 	}
-	else if(input.front().tok == tok_var)
+	else if(input.front().tok == tok_var) {
+		for(int i = 0; i < symbol_table.size(); i++) {
+			if(symbol_table[i]->name == input.front().value) {
+				input.pop();
+				return ((Expr*) symbol_table[i]);
+			}
+		}
 		temp = new Var(input.front().value);
+		symbol_table.push_back((Var *) temp);
+	}
 	else
 		return err_message("variable or truth value", input.front());
 
@@ -230,4 +251,47 @@ Expr* err_message(const char *message, Lexeme &item)
 {
 	std::cout << "Error: Expected " << message << " got " << item.value << std::endl;
 	return nullptr;
+}
+
+void print_table(Expr *e)
+{
+	int longest_name = symbol_table[0]->name.length();
+	for(int i = 1; i < symbol_table.size(); i++) {
+		if(symbol_table[i]->name.length() > longest_name)
+			longest_name = symbol_table[i]->name.length();
+	}
+	std::string header = "";
+	for(int i = 0; i < symbol_table.size(); i++) {
+		header += ("| " + symbol_table[i]->name);
+		for(int j = 0; j <= longest_name - symbol_table[i]->name.length(); j++)
+			header += " ";
+	}
+	header += "| Y";
+	for(int i = 0; i <= longest_name - 1; i++)
+		header += " ";
+	header += "|\n";
+
+	std::string line = "";
+	for(int i = 0; i <= symbol_table.size(); i++) {
+		line += "|";
+		for(int j = 0; j < longest_name + 2; j++)
+			line += "-";
+	}
+	line += "|\n";
+	header += line;
+
+	for(int i = 0; i < ((int) pow(2, symbol_table.size())); i++) {
+		line = "";
+		for(int j = symbol_table.size() - 1; j >= 0; j--) {
+			symbol_table[symbol_table.size() - 1 - j]->set((i >> j) & 1);
+			line += ("| " + std::to_string((i >> j) & 1));
+			for(int k = 0; k <= longest_name - 1; k++)
+				line += " ";
+		}
+		line += ("| " + std::to_string(e->calc()));
+		for(int k = 0; k <= longest_name - 1; k++)
+			line += " ";
+		header += (line + "|\n");
+	}
+	std::cout << header << std::endl;
 }

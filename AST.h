@@ -39,8 +39,8 @@ class Var : public Expr {
 			: name(name) {}
 		bool calc() override;
 		void set(bool v);
-	private:
 		std::string name;
+	private:
 		bool v;
 };
 #endif
