@@ -1,57 +1,9 @@
-????? [The good one used] (NOT GOOD DOES NOT ALLOW CHAINING OF OPERATORS)
-EQUATION -> OR_EXPR
-OR_EXPR -> AND_EXPR + AND_EXPR | AND_EXPR
-AND_EXPR -> FLIP_EXPR * FLIP_EXPR | FLIP_EXPR
-FLIP_EXPR -> ! ATOM | ATOM | ( OR_EXPR )
-ATOM -> 0 | 1 | VAR
-VAR -> [a-zA-Z]+
-
-
-EQUATION
-OR
-AND + AND
-FLIP + AND
-ATOM + AND
-ATOM + FLIP
-ATOM + ( OR )
-ATOM + ( AND + AND )
-ATOM + ( FLIP + AND )
-ATOM + ( ATOM + AND )
-ATOM + ( ATOM + FLIP )
-ATOM + ( ATOM + 
-1 + (1 + 1 + 1)
-
-
 EQUATION -> OR_EXPR
 OR_EXPR -> AND_EXPR + OR_EXPR | AND_EXPR
 AND_EXPR -> FLIP_EXPR * AND_EXPR | FLIP_EXPR
 FLIP_EXPR -> ! ATOM | ATOM
 ATOM -> 0 | 1 | VAR | ( OR_EXPR )
 VAR -> [a-zA-Z]+
-
-EQUATION
-OR
-AND + OR
-FLIP + OR
-ATOM + OR
-1 + OR
-1 + AND
-1 + FLIP
-1 + ( OR )
-1 + ( AND + OR )
-1 + ( FLIP + OR )
-1 + ( ATOM + OR )
-1 + ( 1 + OR )
-1 + ( 1 + AND + OR )
-1 + ( 1 + FLIP + OR )
-1 + ( 1 + ATOM + OR )
-1 + ( 1 + 1 + OR )
-1 + ( 1 + 1 + AND )
-1 + ( 1 + 1 + FLIP )
-1 + ( 1 + 1 + ATOM )
-1 + (1 + 1 + 1)
-1 + (1 + 1 + 1)
-
 
 | A | B | C | Y |
 |---|---|---|---|
