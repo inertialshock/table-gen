@@ -1,8 +1,8 @@
 run: build
-	./a.out
+	./table-gen
 
 build: main.o AST.o
-	g++ -g main.o AST.o
+	g++ -g main.o AST.o -o table-gen
 
 main.o: main.cpp
 	g++ -c main.cpp

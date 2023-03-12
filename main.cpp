@@ -45,12 +45,6 @@ int main(int argc, char **argv)
 	}
 	else
 		equation = argv[1];
-	/*
-	AST* head = parser(lexer(equation));
-	if(!head->have_children())
-		return -1;
-	print_table(head);
-	*/
 	if(!lexer(equation)) {
 		if(input.size() == 0)
 			std::cerr << "Error: No equation was given" << std::endl;
@@ -63,21 +57,12 @@ int main(int argc, char **argv)
 			return -1;
 		}
 		else {
-			if(symbol_table.size() > 0) {
+			if(symbol_table.size() > 0) 
 				print_table(e);
-			}
-			else {
+			else
 				std::cout << "Value of equation: " << e->calc() << std::endl;
-			}
 		}
 	}
-	/*
-	while(input.size() != 0)
-	{
-		std::cout << input.front().value << " | " << input.front().tok << std::endl;
-		input.pop();
-	}
-	*/
 	return 0;
 }
 
@@ -132,7 +117,7 @@ bool lexer(std::string &equation)
 					tok = tok_rparen;
 					break;
 				default:
-					std::cerr << "Error: Invalid token " << item << " detected at index: " << i << std::endl;
+					std::cerr << "Error: Invalid token [" << item << "] detected at index: " << i << std::endl;
 					return false;
 			}
 			i++;
