@@ -1,9 +1,10 @@
 #ifndef AST_H
 #define AST_H
+#include <string>
 class Expr {
 	public:
 		virtual ~Expr() = default;
-		virtual bool calc() {};
+		virtual bool calc() {return true;}
 };
 class Binary : public Expr {
 	public:
@@ -22,12 +23,23 @@ class Unary : public Expr {
 	private:
 		Expr *e;
 };
-class Unit : public Expr {
+class Val : public Expr {
 	public:
-		Unit(bool val)
-			: val(val) {}
+		Val(bool v)
+			: v(v) {}
 		bool calc() override;
 	private:
-		bool val;
+		bool v;
+};
+
+class Var : public Expr {
+	public:
+		Var(std::string &name)
+			: name(name) {}
+		bool calc() override;
+		void set(bool v);
+	private:
+		std::string name;
+		bool v;
 };
 #endif

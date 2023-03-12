@@ -12,7 +12,19 @@ bool Unary::calc()
 	return !(e->calc());
 }
 
-bool Unit::calc()
+bool Val::calc()
 {
-	return val;
+	return v;
 }
+
+bool Var::calc()
+{
+	return v;
+}
+
+void Var::set(bool v)
+{
+	this->v = v;
+}
+
+

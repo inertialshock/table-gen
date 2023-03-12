@@ -6,7 +6,7 @@ ATOM -> 0 | 1 | VAR
 VAR -> [a-zA-Z]+
 
 
-?????
+????? [The good one used]
 EQUATION -> OR_EXPR
 OR_EXPR -> AND_EXPR + AND_EXPR | AND_EXPR
 AND_EXPR -> FLIP_EXPR * FLIP_EXPR | FLIP_EXPR

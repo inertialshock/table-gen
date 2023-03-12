@@ -13,8 +13,6 @@ enum Token {
 	tok_not,
 	tok_lparen,
 	tok_rparen,
-	tok_eof,
-	tok_err,
 };
 
 typedef struct {
@@ -22,13 +20,14 @@ typedef struct {
 	Token tok;
 } Lexeme;
 
-std::queue<Lexeme> lexer(std::string &equation);
-void parser(std::queue<Lexeme> &input);
-bool equation(std::queue<Lexeme> &input);
-bool disjunction(std::queue<Lexeme> &input);
-bool conjunction(std::queue<Lexeme> &input);
-bool flip(std::queue<Lexeme> &input);
-bool atom(std::queue<Lexeme> &input);
+std::queue<Lexeme> input;
+bool lexer(std::string &equation);
+void parser();
+bool equation();
+bool disjunction();
+bool conjunction();
+bool flip();
+bool atom();
 bool err_message(const char *message, Lexeme &item);
 //void print_table(AST* head);
 int main(int argc, char **argv)
@@ -46,18 +45,18 @@ int main(int argc, char **argv)
 		return -1;
 	print_table(head);
 	*/
-	std::queue<Lexeme> report = lexer(equation);
-	if(report.size() == 0)
-		std::cerr << "Error: No equation was given" << std::endl;
-	else if(report.front().tok == tok_err)
+	if(!lexer(equation)) {
+		if(input.size() == 0)
+			std::cerr << "Error: No equation was given" << std::endl;
 		return -1;
+	}
 	else
-		parser(report);
+		parser();
 	/*
-	while(report.size() != 0)
+	while(input.size() != 0)
 	{
-		std::cout << report.front().value << " | " << report.front().tok << std::endl;
-		report.pop();
+		std::cout << input.front().value << " | " << input.front().tok << std::endl;
+		input.pop();
 	}
 	*/
 	return 0;
@@ -71,11 +70,12 @@ int main(int argc, char **argv)
  * [a-zA-Z]+ for variables
  * NOTE: Whitespace is ignored
  */
-std::queue<Lexeme> lexer(std::string &equation)
+bool lexer(std::string &equation)
 {
-	std::queue<Lexeme> report;
-	if(equation.size() == 0)
-		return report;
+	if(equation.size() == 0) {
+		std::cerr << "Error: No input given" << std::endl;
+		return false;
+	}
 
 	std::string item;
 	Token tok;
@@ -84,7 +84,7 @@ std::queue<Lexeme> lexer(std::string &equation)
 		for(i = i; i < equation.size() && isspace(equation[i]); i++)
 			;
 		if(i >= equation.size())
-			return report;
+			return true;
 		item = equation[i];
 		if(isalpha(equation[i])) {
 			for(i = i + 1; i < equation.size() && isalnum(equation[i]); i++)
@@ -114,39 +114,38 @@ std::queue<Lexeme> lexer(std::string &equation)
 					break;
 				default:
 					std::cerr << "Error: Invalid token " << item << " detected at index: " << i << std::endl;
-					report.front().tok = tok_err;
-					return report;
+					return false;
 			}
 			i++;
 		}
 		Lexeme temp = {item, tok};
-		report.push(temp);
+		input.push(temp);
 	}
 }
 
-void parser(std::queue<Lexeme> &input)
+void parser()
 {
-	if(input.size() == 0 || input.front().tok == tok_err)
+	if(input.size() == 0)
 		return;
-	if(equation(input))
+	if(equation())
 		std::cout << "Valid String" << std::endl;
 	else
 		std::cout << "Invalid String" << std::endl;
 }
 
-bool equation(std::queue<Lexeme> &input)
+bool equation()
 {
-	return disjunction(input) && (input.size() == 0);
+	return disjunction() && (input.size() == 0);
 }
 
-bool disjunction(std::queue<Lexeme> &input)
+bool disjunction()
 {
 	if(input.size() == 0)
 		return false;
-	if(conjunction(input)) {
+	if(conjunction()) {
 		if(input.front().tok == tok_or) {
 			input.pop();
-			if(!disjunction(input)) {
+			if(!disjunction()) {
 				return err_message("AND_EXPR", input.front());
 			}
 		}
@@ -155,14 +154,14 @@ bool disjunction(std::queue<Lexeme> &input)
 	return false;
 }
 
-bool conjunction(std::queue<Lexeme> &input)
+bool conjunction()
 {
 	if(input.size() == 0)
 		return false;
-	if(flip(input)) {
+	if(flip()) {
 		if(input.front().tok == tok_and) {
 			input.pop();
-			if(!flip(input)) {
+			if(!flip()) {
 				return err_message("FLIP_EXPR", input.front());
 			}
 		}
@@ -171,16 +170,16 @@ bool conjunction(std::queue<Lexeme> &input)
 	return false;
 }
 
-bool flip(std::queue<Lexeme> &input)
+bool flip()
 {
 	if(input.size() == 0)
 		return false;
 	if(input.front().tok == tok_not)
 		input.pop();
-	return atom(input);
+	return atom();
 }
 
-bool atom(std::queue<Lexeme> &input)
+bool atom()
 {
 	if(input.size() == 0)
 		return false;
@@ -191,7 +190,7 @@ bool atom(std::queue<Lexeme> &input)
 			return true;
 		case tok_lparen:
 			input.pop();
-			disjunction(input);
+			disjunction();
 			if(input.front().tok == tok_rparen) {
 				input.pop();
 				return true;
@@ -207,5 +206,5 @@ bool atom(std::queue<Lexeme> &input)
 bool err_message(const char *message, Lexeme &item)
 {
 	std::cout << "Error: Expected " << message << " got " << item.value << std::endl;
-	return false;
+	return nullptr;
 }
