@@ -35,7 +35,6 @@ Expr* flip();
 Expr* atom();
 Expr* err_message(const char *message, Lexeme &item);
 void print_table(Expr *e);
-//void print_table(AST* head);
 int main(int argc, char **argv)
 {
 	std::string equation;
@@ -61,6 +60,7 @@ int main(int argc, char **argv)
 				print_table(e);
 			else
 				std::cout << "Value of equation: " << e->calc() << std::endl;
+			delete e;
 		}
 	}
 	return 0;
