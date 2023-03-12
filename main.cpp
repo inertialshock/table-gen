@@ -152,10 +152,10 @@ Expr* disjunction()
 	if(lhs) {
 		if(input.front().tok == tok_or) {
 			input.pop();
-			Expr *rhs = conjunction();
+			Expr *rhs = disjunction();
 			if(!rhs) {
 				delete lhs;
-				return err_message("AND_EXPR", input.front());
+				return err_message("OR_EXPR", input.front());
 			}
 			return new Binary('+', lhs, rhs);
 		}
@@ -171,10 +171,10 @@ Expr* conjunction()
 	if(lhs) {
 		if(input.front().tok == tok_and) {
 			input.pop();
-			Expr *rhs = flip();
+			Expr *rhs = conjunction();
 			if(!rhs) {
 				delete lhs;
-				return err_message("FLIP_EXPR", input.front());
+				return err_message("AND_EXPR", input.front());
 			}
 			return new Binary('*', lhs, rhs);
 		}
@@ -202,32 +202,27 @@ Expr* atom()
 	if(input.size() == 0)
 		return nullptr;
 	Expr *temp;
-	switch(input.front().tok) {
-		case tok_val:
-			if(input.front().value == "1")
-				temp = new Val(true);
-			else
-				temp = new Val(false);
-			input.pop();
-			return temp;
-		case tok_var:
-			temp = new Var(input.front().value);
-			input.pop();
-			return temp;
-		case tok_lparen:
-			input.pop();
-			temp = disjunction();
-			if(input.front().tok == tok_rparen) {
-				input.pop();
-				return temp;
-			}
-			else {
-				delete temp;
-				return err_message(")", input.front());
-			}
-		default:
-			return err_message("variable or truth value", input.front());
+	if(input.front().tok == tok_val) {
+		if(input.front().value == "1")
+			temp = new Val(true);
+		else
+			temp = new Val(false);
 	}
+	else if(input.front().tok == tok_lparen) {
+		input.pop();
+		temp = disjunction();
+		if(input.front().tok != tok_rparen) {
+			delete temp;
+			return err_message(")", input.front());
+		}
+	}
+	else if(input.front().tok == tok_var)
+		temp = new Var(input.front().value);
+	else
+		return err_message("variable or truth value", input.front());
+
+	input.pop();
+	return temp;
 }
 
 
